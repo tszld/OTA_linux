@@ -1,0 +1,31 @@
+# ── 凭据密钥（严禁提交）──
+*.csv
+.env
+
+# ── Python ──
+__pycache__/
+*.py[cod]
+.cache/
+
+# ── 运行时产物 ──
+realtime_timeline.jsonl
+conversation_history.jsonl
+input_audio/
+logs/
+
+# ── 大模型文件 ──
+# 所有 pkl 默认忽略，唯一例外是运行时必需的垫话权重（459MB，Git LFS 跟踪，见 .gitattributes）
+*.pkl
+!src/voice_process/gap_filler/assets/filler.pkl
+# 训练中间产物（HuggingFace 格式，可由 gap_filler/train.py 重新生成）
+src/voice_process/gap_filler/model/
+
+# ── 音频/视频样本（不随仓库分发）──
+*.wav
+*.m4a
+*.mp4
+*.mp3
+
+# ── IDE ──
+.idea/
+.vscode/
