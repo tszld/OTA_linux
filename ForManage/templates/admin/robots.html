@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}机器人管理{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>机器人管理</h3>
+</div>
+
+{% if robots %}
+<div class="table-responsive">
+<table class="table table-hover table-sm">
+    <thead>
+        <tr>
+            <th>状态</th>
+            <th>设备 ID</th>
+            <th>型号</th>
+            <th>部门</th>
+            <th>批次</th>
+            <th>负责人</th>
+            <th>地点</th>
+            <th>启用状态</th>
+            <th>最后在线</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for robot in robots %}
+        <tr>
+            <td>
+                <span class="status-dot {{ 'online' if robot.is_online else 'offline' }}"></span>
+                {{ '在线' if robot.is_online else '离线' }}
+            </td>
+            <td>
+                <code class="device-id" style="font-size: 0.85rem;" title="{{ robot.device_id }}">{{ robot.device_id[:12] }}…</code>
+                <button type="button" class="btn btn-sm btn-link p-0 ms-1 copy-btn" 
+                        data-id="{{ robot.device_id }}" title="复制">
+                    📋
+                </button>
+            </td>
+            <td>{{ robot.model }}</td>
+            <td>
+                <form method="POST" action="{{ url_for('admin.robot_assign_dept', robot_id=robot.id) }}" class="d-inline">
+                    <select name="dept_id" class="form-select form-select-sm" style="width: auto; display: inline-block;"
+                            onchange="this.form.submit()">
+                        <option value="">无部门</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept.id }}" {{ 'selected' if robot.dept_id == dept.id else '' }}>
+                            {{ dept.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </td>
+            <td>
+                <form method="POST" action="{{ url_for('admin.robot_assign_batch', robot_id=robot.id) }}" class="d-inline">
+                    <select name="batch_id" class="form-select form-select-sm" style="width: auto; display: inline-block;"
+                            onchange="this.form.submit()">
+                        <option value="">无批次</option>
+                        {% for batch in batches %}
+                        <option value="{{ batch.id }}" {{ 'selected' if robot.batch_id == batch.id else '' }}>
+                            {{ batch.name }} ({{ batch.update_time }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </td>
+            <td>{{ robot.registered_by or '-' }}</td>
+            <td>{{ robot.location or '-' }}</td>
+            <td>
+                {% if robot.status == 'active' %}
+                <span class="badge bg-success">启用</span>
+                {% else %}
+                <span class="badge bg-secondary">禁用</span>
+                {% endif %}
+            </td>
+            <td>{{ robot.last_online_at or '从未' }}</td>
+            <td>
+                <div class="btn-group btn-group-sm">
+                    <form method="POST" action="{{ url_for('admin.robot_toggle_status', robot_id=robot.id) }}" class="d-inline">
+                        <button type="submit" class="btn btn-outline-primary" 
+                                onclick="return confirm('确认{{ '禁用' if robot.status == 'active' else '启用' }}此机器人？')">
+                            {{ '禁用' if robot.status == 'active' else '启用' }}
+                        </button>
+                    </form>
+                    <form method="POST" action="{{ url_for('admin.robot_reset_update_key', robot_id=robot.id) }}" class="d-inline">
+                        <button type="submit" class="btn btn-outline-warning"
+                                onclick="return confirm('确认重置 update_key？机器人需要更新配置。')">
+                            重置 Key
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-outline-danger" 
+                            data-bs-toggle="modal" data-bs-target="#resetApiKeyModal{{ robot.id }}">
+                        重置 API
+                    </button>
+                    <form method="POST" action="{{ url_for('admin.robot_delete', robot_id=robot.id) }}" class="d-inline">
+                        <button type="submit" class="btn btn-outline-dark"
+                                onclick="return confirm('确认删除此机器人？此操作不可恢复。')">
+                            删除
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- 重置 API Key 模态框 -->
+                <div class="modal fade" id="resetApiKeyModal{{ robot.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form method="POST" action="{{ url_for('admin.robot_reset_api_key', robot_id=robot.id) }}">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">重置 API Key</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>设备：<code>{{ robot.device_id }}</code></p>
+                                    <div class="mb-3">
+                                        <label class="form-label">新 API Key（留空则自动生成）</label>
+                                        <input type="text" class="form-control" name="api_key" 
+                                               placeholder="sk-..." value="{{ robot.api_key or '' }}">
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                    <button type="submit" class="btn btn-danger">确认重置</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.copy-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            navigator.clipboard.writeText(id).then(function() {
+                btn.textContent = '✅';
+                setTimeout(function() { btn.textContent = '📋'; }, 1500);
+            }).catch(function(err) {
+                console.error('复制失败:', err);
+            });
+        });
+    });
+});
+</script>
+{% else %}
+<div class="text-muted mt-3">暂无机器人。机器人通过 API 注册后会自动出现在此处。</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}批次管理{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>批次管理</h3>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createBatchModal">
+        创建批次
+    </button>
+</div>
+
+{% if batches %}
+<div class="table-responsive">
+    <table class="table table-hover table-sm">
+        <thead>
+            <tr>
+                <th>批次名称</th>
+                <th>更新时间</th>
+                <th>机器人数</th>
+                <th>状态</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for batch in batches %}
+            <tr>
+                <td>{{ batch.name }}</td>
+                <td>{{ batch.update_time }}</td>
+                <td><span class="badge bg-info">{{ batch.robot_count }}</span></td>
+                <td>
+                    {% if batch.status == 'active' %}
+                    <span class="badge bg-success">活跃</span>
+                    {% else %}
+                    <span class="badge bg-secondary">未激活</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="POST" action="{{ url_for('admin.batch_delete', batch_id=batch.id) }}" 
+                          onsubmit="return confirm('确定删除批次 {{ batch.name }}？')">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">删除</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">
+    暂无批次。点击"创建批次"按钮创建第一个批次。
+</div>
+{% endif %}
+
+<!-- 创建批次模态框 -->
+<div class="modal fade" id="createBatchModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('admin.batch_create') }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">创建批次</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">批次名称</label>
+                        <input type="text" class="form-control" id="name" name="name" 
+                               placeholder="例如：凌晨2点组" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="update_time" class="form-label">更新时间</label>
+                        <input type="time" class="form-control" id="update_time" name="update_time" required>
+                        <div class="form-text">机器人将在此时间点前后1小时内进行更新</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">创建</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

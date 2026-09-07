@@ -12,4 +12,7 @@
 3. ForManage
     提供给机器人的管理者使用，可做机器人版本管理和配置
 
+<<<<<<< HEAD
  [ForClient+aiagent]:用户上传-ECS上传原始文档到OSS-ECS同时处理内存中原始文档(转换+压缩)-ECS压缩后文档上传OSS; [ForManage]-机器人注册-认证-管理+云端 key分发 ;[Local_robot]:定时拉取远程文档-本地调LLM
+=======
+>>>>>>> d364ebb

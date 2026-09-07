@@ -1,0 +1,52 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.table th {
+    font-weight: 600;
+    color: #495057;
+}
+
+/* 在线状态指示器 */
+.status-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+.status-dot.online { 
+    background-color: #28a745; 
+}
+.status-dot.offline { 
+    background-color: #6c757d; 
+}
+
+/* 操作按钮组 */
+.btn-group-sm .btn {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.5rem;
+}
+
+/* 机器人管理表格优化 */
+.table td, .table th {
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.device-id {
+    display: inline-block;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+}
+
+.copy-btn {
+    vertical-align: middle;
+    font-size: 0.85rem;
+}
