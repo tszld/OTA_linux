@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}公共文档管理{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>公共文档管理</h3>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">上传文档</button>
+</div>
+
+{% if files %}
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>文件名</th>
+            <th>状态</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for file in files %}
+        <tr>
+            <td>{{ file['filename'] }}</td>
+            <td class="doc-status" data-file-key="{{ file['file_key'] }}">
+                {% if file['status'] == 'pending' %}
+                    <span class="badge bg-warning text-dark">待处理</span>
+                {% elif file['status'] == 'processing' %}
+                    <span class="badge bg-info text-white">
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        处理中
+                    </span>
+                {% elif file['status'] == 'completed' %}
+                    <span class="badge bg-success">已完成</span>
+                {% elif file['status'] == 'failed' %}
+                    <span class="badge bg-danger" title="{{ file['error_message'] }}">失败</span>
+                {% endif %}
+            </td>
+            <td>
+                <a href="{{ url_for('docs.download', key=file['file_key']) }}" class="btn btn-sm btn-outline-primary">下载</a>
+                <form method="POST" action="{{ url_for('admin.delete_public_doc') }}" class="d-inline"
+                      onsubmit="return confirm('确认删除此文件？')">
+                    <input type="hidden" name="key" value="{{ file['file_key'] }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">删除</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="text-muted mt-3">暂无公共文档</div>
+{% endif %}
+
+<!-- 上传模态框 -->
+<div class="modal fade" id="uploadModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('admin.upload_public_doc') }}" enctype="multipart/form-data">
+                <div class="modal-header">
+                    <h5 class="modal-title">上传公共文档</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">选择文件（可多选）</label>
+                        <input type="file" class="form-control" id="file" name="file"
+                               accept=".pdf,.doc,.docx,.txt,.md" multiple required>
+                        <div class="form-text">支持 PDF、DOC、DOCX、TXT、MD 格式，最大 16MB，可同时选择多个文件</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">上传</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// 每 5 秒更新文档状态
+function updateDocStatus() {
+    fetch('{{ url_for("admin.docs_status_api") }}')
+        .then(response => response.json())
+        .then(data => {
+            data.forEach(doc => {
+                const statusCell = document.querySelector(`.doc-status[data-file-key="${doc.file_key}"]`);
+                if (statusCell) {
+                    let statusHtml = '';
+                    if (doc.status === 'pending') {
+                        statusHtml = '<span class="badge bg-warning text-dark">待处理</span>';
+                    } else if (doc.status === 'processing') {
+                        statusHtml = '<span class="badge bg-info text-white"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 处理中</span>';
+                    } else if (doc.status === 'completed') {
+                        statusHtml = '<span class="badge bg-success">已完成</span>';
+                    } else if (doc.status === 'failed') {
+                        statusHtml = `<span class="badge bg-danger" title="${doc.error_message || ''}">失败</span>`;
+                    }
+                    statusCell.innerHTML = statusHtml;
+                }
+            });
+        })
+        .catch(err => console.error('更新状态失败:', err));
+}
+
+setInterval(updateDocStatus, 5000);
+</script>
+{% endblock %}

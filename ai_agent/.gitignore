@@ -12,6 +12,7 @@ realtime_timeline.jsonl
 conversation_history.jsonl
 input_audio/
 logs/
+processed/
 
 # ── 大模型文件 ──
 # 所有 pkl 默认忽略，唯一例外是运行时必需的垫话权重（459MB，Git LFS 跟踪，见 .gitattributes）

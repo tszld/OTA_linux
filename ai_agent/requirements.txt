@@ -1,0 +1,8 @@
+# PDF 转换
+PyMuPDF>=1.24.0
+
+# LLM API 调用
+openai>=1.0.0
+
+# 环境变量管理
+python-dotenv>=1.0.0

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}回收站{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>回收站</h2>
+    <p class="text-muted">已删除的文档将在此保留，您可以选择恢复或彻底删除</p>
+    
+    {% if files %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>文件名</th>
+                <th>文档类型</th>
+                <th>删除时间</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for file in files %}
+            <tr>
+                <td>{{ file.filename }}</td>
+                <td>
+                    {% if file.doc_type == 'public' %}
+                        <span class="badge bg-primary">公共文档</span>
+                    {% else %}
+                        <span class="badge bg-secondary">部门文档</span>
+                    {% endif %}
+                </td>
+                <td>{{ file.deleted_at }}</td>
+                <td>
+                    <form method="POST" action="{{ url_for('admin.restore_document') }}" style="display: inline;">
+                        <input type="hidden" name="file_key" value="{{ file.file_key }}">
+                        <button type="submit" class="btn btn-sm btn-success">恢复</button>
+                    </form>
+                    <form method="POST" action="{{ url_for('admin.hard_delete_document') }}" style="display: inline;" onsubmit="return confirm('确定要彻底删除此文档吗？此操作不可恢复！')">
+                        <input type="hidden" name="file_key" value="{{ file.file_key }}">
+                        <button type="submit" class="btn btn-sm btn-danger">彻底删除</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-info">
+        回收站为空
+    </div>
+    {% endif %}
+    
+    <a href="{{ url_for('admin.admin_docs') }}" class="btn btn-secondary">返回文档管理</a>
+</div>
+{% endblock %}
