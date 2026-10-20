@@ -1,6 +1,7 @@
 # ── 凭据密钥（严禁提交）──
 *.csv
 .env
+*.local.json
 
 # ── Python ──
 __pycache__/
